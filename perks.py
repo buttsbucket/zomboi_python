@@ -88,11 +88,13 @@ class PerkHandler(commands.Cog):
         # Then the message type, can be "Died", "Login", "Level Changed" or a list of perks
         type, message = message.split("]", 1)
 
-        # All these logs should include hours survived
-        hours = re.search(r"Hours Survived: (\d+)", message).group(1)
-        user.hoursAlive = hours
-        if int(hours) > int(user.recordHoursAlive):
-            user.recordHoursAlive = hours
+        # Skill Recovery Journal FIX
+        if type != "SRJ START READING":
+            hours = re.search(r"Hours Survived: (\d+)", message).group(1)
+            user.hoursAlive = hours
+            if int(hours) > int(user.recordHoursAlive):
+                user.recordHoursAlive = hours
+
 
         if type == "Died":
             user.died.append(timestamp)
@@ -130,7 +132,11 @@ class PerkHandler(commands.Cog):
                     return embed.perk(
                         timestamp, user.name, log_char_string, perk, level
                     )
-
+     # Skill Recovery Journal FIX
+        elif type == "SRJ START READING":
+            if timestamp > self.lastUpdateTimestamp:
+                self.bot.log.info(f"{user.name} Skills Recovery Journal")
+                return f":book: {log_char_string} (**{user.name}**) fait un peu de lecture......."
         else:
             # Must be a list of perks following a login/player creation
             for name, value in re.findall(r"(\w+)=(\d+)", type):
